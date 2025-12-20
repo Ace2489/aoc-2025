@@ -1,7 +1,13 @@
-use std::{any::type_name_of_val, fs::File, io::Read};
+use std::{
+    any::type_name_of_val,
+    fs::File,
+    io::{self, Read},
+};
 
 fn main() {
     part_1();
+    // let a: u16 = 2 + (-100i16 / -12i16) as u16;
+    // println!("{}", a);
 }
 
 fn part_1() {
@@ -38,20 +44,31 @@ fn part_1() {
         match s.chars().next() {
             Some('L') => {
                 let parsed: i16 = (&s[1..]).parse().expect("No invalid values");
-                start = ((start - parsed) % 100 + 100) % 100;
+                let intermediate = start - parsed;
+                let mut hits: u16 = if intermediate <= 0 && start > 0 { 1 } else { 0 };
+                start = (intermediate % 100 + 100) % 100;
 
-                if start == 0 {
-                    zero = zero + 1;
+                hits = hits + (intermediate.abs() / 100) as u16;
+
+                let val = zero.checked_add(hits);
+                if val == None {
+                    println!("Culprit: {}. Intermediate: {}", hits, intermediate);
+                    panic!("Wrapping addition found");
                 }
+
+                zero = zero + hits;
             }
             Some('R') => {
                 let parsed: i16 = (&s[1..]).parse().expect("No invalid values");
-                start = start + parsed;
-                start = start % 100;
+                let total = start + parsed;
+                start = total % 100;
 
-                if start == 0 {
-                    zero = zero + 1;
-                }
+                // let hits = ((total - start / 100) as u16;
+                // assert!(hits > 0);
+                let total: u16 = total.try_into().unwrap();
+                let hits = total / 100; //Floor division removes the remainder
+
+                zero = zero + hits;
             }
             Some(c) => panic!("Invalid direction {}", c),
             None => panic!("Empty string"),
